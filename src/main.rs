@@ -21,8 +21,20 @@ fn sphere(p: Point3D, size: f64) -> f64 {
     p.length() - size
 }
 
+fn trans(p: Point3D, modulo: f64) -> Point3D {
+    let half: f64 = modulo / 2.0;
+    let neg_x: f64 = p.x.signum();
+    let neg_y: f64 = p.y.signum();
+    let neg_z: f64 = p.z.signum();
+    Point3D {
+        x: (p.x % modulo) * neg_x - half,
+        y: (p.y % modulo) * neg_y - half,
+        z: (p.z % modulo) * neg_z - half
+    }
+}
+
 fn map(p: Point3D) -> f64 {
-    sphere(p, 2.0)
+    sphere(trans(p, 4.0), 1.0)
 }
 
 fn normal(p: Point3D) -> Point3D {
@@ -75,7 +87,7 @@ fn march(x: u32, y: u32, w: u32, h: u32, count: u32) -> Color {
 }
 
 fn main() {
-    let count: u32 = 8;
+    let count: u32 = 32;
     let width: u32 = 512;
     let height: u32 = 512;
 
