@@ -6,7 +6,7 @@ pub struct Point3D {
 }
 
 impl Point3D {
-    pub fn new(x: f64, y: f64, z: f64) -> Self {
+    pub fn new(x: f64, y: f64, z: f64) -> Point3D {
         Point3D {x: x, y: y, z: z}
     }
     pub fn length(&self) -> f64 {
