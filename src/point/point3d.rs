@@ -23,10 +23,10 @@ impl Point3D {
         self.y /= l;
         self.z /= l;
     }
-    pub fn dot(&self, other :&Point3D) -> f64 {
+    pub fn dot(&self, other :Point3D) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
-    pub fn cross(&self, other :&Point3D) -> Point3D {
+    pub fn cross(&self, other :Point3D) -> Point3D {
         Point3D {
             x: self.y * other.z - self.z * other.y,
             y: self.z * other.x - self.x * other.z,
