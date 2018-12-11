@@ -1,4 +1,8 @@
 
+use std::ops::Add;
+use std::ops::Sub;
+
+#[derive(Copy, Clone)]
 pub struct Point3D {
     pub x: f64,
     pub y: f64,
@@ -27,6 +31,27 @@ impl Point3D {
             x: self.y * other.z - self.z * other.y,
             y: self.z * other.x - self.x * other.z,
             z: self.x * other.y - self.y * other.x
+        }
+    }
+}
+
+impl Add for Point3D {
+    type Output = Point3D;
+    fn add(self, other: Point3D) -> Point3D {
+        Point3D {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z
+        }
+    }
+}
+impl Sub for Point3D {
+    type Output = Point3D;
+    fn sub(self, other: Point3D) -> Point3D {
+        Point3D {
+            x: self.x - other.x,
+            y: self.y - other.y,
+            z: self.z - other.z
         }
     }
 }
