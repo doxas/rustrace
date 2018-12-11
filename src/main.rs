@@ -66,7 +66,7 @@ fn main() {
         *pixel = image::Rgba([dest[0] as u8, dest[1] as u8, dest[2] as u8, dest[3] as u8]);
     }
 
-    img.save("test.png").unwrap();
+    img.save("./out/test.png").unwrap();
 }
 
 
