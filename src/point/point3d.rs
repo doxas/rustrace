@@ -1,8 +1,5 @@
 
-use std::ops::Add;
-use std::ops::Sub;
-use std::ops::Mul;
-use std::ops::Div;
+use std::ops::*;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Point3D {
@@ -15,9 +12,19 @@ impl Point3D {
     pub fn new(x: f64, y: f64, z: f64) -> Point3D {
         Point3D {x: x, y: y, z: z}
     }
+    pub fn set(&mut self, x: f64, y: f64, z: f64) {
+        self.x = x;
+        self.y = y;
+        self.z = z;
+    }
     pub fn length(self) -> f64 {
         let l :f64 = self.x * self.x + self.y * self.y + self.z * self.z;
         l.sqrt()
+    }
+    pub fn negate(&mut self) {
+        self.x *= -1.0;
+        self.y *= -1.0;
+        self.z *= -1.0;
     }
     pub fn normalize(&mut self) {
         let l :f64 = self.length();
@@ -127,9 +134,28 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_point3d_print() {
+        let p: Point3D = Point3D::new(0.0, 1.0, 2.0);
+        println!("Point3D Debug Check {:?}", p);
+    }
+    #[test]
+    fn test_point3d_set() {
+        let mut p: Point3D = Point3D::new(0.0, 1.0, 2.0);
+        p.set(1.0, 2.0, 3.0);
+        assert_eq!(p.x, 1.0f64);
+        assert_eq!(p.y, 2.0f64);
+        assert_eq!(p.z, 3.0f64);
+    }
+    #[test]
     fn test_point3d_len() {
         let p: Point3D = Point3D::new(1.0, 0.0, 0.0);
         assert_eq!(p.length(), 1.0f64);
+    }
+    #[test]
+    fn test_point3d_negate() {
+        let mut p: Point3D = Point3D::new(1.0, 0.0, 0.0);
+        p.negate();
+        assert_eq!(p.x, -1.0f64);
     }
     #[test]
     fn test_point3d_normal() {
