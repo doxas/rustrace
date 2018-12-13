@@ -100,6 +100,14 @@ mod tests {
         assert_eq!(p.length(), 1.0_f64);
         assert!(p.x == p.y && p.y == p.z);
     }
+
+    #[test]
+    fn test_point3d_mul_point3d() {
+        let mut p: Point3D = Point3D::new(10.0, 10.0, 10.0);
+        // 自身同士でも大丈夫
+        p = p * p;
+        assert_eq!(p.x, 100.0);
+    }
 }
 
 
