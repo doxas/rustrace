@@ -128,6 +128,19 @@ impl Div<f64> for Point3D {
         }
     }
 }
+impl Rem<f64> for Point3D {
+    type Output = Point3D;
+    fn rem(self, other: f64) -> Point3D {
+        let neg_x: f64 = self.x.signum();
+        let neg_y: f64 = self.y.signum();
+        let neg_z: f64 = self.z.signum();
+        Point3D {
+            x: (self.x % other) * neg_x,
+            y: (self.y % other) * neg_y,
+            z: (self.z % other) * neg_z
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -182,6 +195,15 @@ mod tests {
         p = p + 10.0;
         assert_eq!(p.x, 20.0);
         assert!(p.x == p.y && p.y == p.z);
+    }
+    #[test]
+    fn test_point3d_rem_f64() {
+        let mut p: Point3D = Point3D::new(10.0, 10.0, 10.0);
+        p = p % 7.0;
+        assert_eq!(p.x, 3.0);
+        p.negate();
+        p = p % 7.0;
+        assert_eq!(p.x, 3.0);
     }
 }
 
