@@ -82,6 +82,16 @@ impl Div for Point3D {
         }
     }
 }
+impl Add<f64> for Point3D {
+    type Output = Point3D;
+    fn add(self, other: f64) -> Point3D {
+        Point3D {
+            x: self.x + other,
+            y: self.y + other,
+            z: self.z + other
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -102,11 +112,18 @@ mod tests {
     }
 
     #[test]
-    fn test_point3d_mul_point3d() {
+    fn test_point3d_add_point3d() {
         let mut p: Point3D = Point3D::new(10.0, 10.0, 10.0);
         // 自身同士でも大丈夫
-        p = p * p;
-        assert_eq!(p.x, 100.0);
+        p = p + p;
+        assert_eq!(p.x, 20.0);
+    }
+
+    #[test]
+    fn test_point3d_add_f64() {
+        let mut p: Point3D = Point3D::new(10.0, 10.0, 10.0);
+        p = p + 10.0;
+        assert_eq!(p.x, 20.0);
     }
 }
 
