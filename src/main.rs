@@ -63,19 +63,24 @@ fn intersect_plane(ray: &mut Ray, plane: &Geometry) {
             ray.position = ray.origin + ray.direction * t;
             ray.normal = plane.normal;
             ray.position = ray.position + ray.normal * 0.001;
-            if plane.is_reflect == true {
-                ray.reflected = ray.direction.reflect(ray.normal);
-                ray.reflect += 1;
-            }
             let mut m: f64 = ray.position.x % 2.0;
             let mut n: f64 = ray.position.z % 2.0;
             if m < 0.0 {m += 2.0;}
             if n < 0.0 {n += 2.0;}
             let mut c: f64 = 1.0;
             if (m > 1.0 && n > 1.0) || (m < 1.0 && n < 1.0) {c *= 0.5;}
-            ray.color.r = plane.color.r * c;
-            ray.color.g = plane.color.g * c;
-            ray.color.b = plane.color.b * c;
+            if plane.is_reflect == true {
+                ray.reflected = ray.direction.reflect(ray.normal);
+                ray.reflect += 1;
+                ray.color.r = ray.color.r * 0.5 + (plane.color.r * c) * 0.5;
+                ray.color.g = ray.color.g * 0.5 + (plane.color.g * c) * 0.5;
+                ray.color.b = ray.color.b * 0.5 + (plane.color.b * c) * 0.5;
+            } else {
+                ray.reflect = 0;
+                ray.color.r = plane.color.r * c;
+                ray.color.g = plane.color.g * c;
+                ray.color.b = plane.color.b * c;
+            }
         }
     }
 }
@@ -99,10 +104,15 @@ fn intersect_sphere(ray: &mut Ray, sphere: &Geometry) {
                 if sphere.is_reflect == true {
                     ray.reflected = ray.direction.reflect(ray.normal);
                     ray.reflect += 1;
+                    ray.color.r = ray.color.r * 0.5 + sphere.color.r * 0.5;
+                    ray.color.g = ray.color.g * 0.5 + sphere.color.g * 0.5;
+                    ray.color.b = ray.color.b * 0.5 + sphere.color.b * 0.5;
+                } else {
+                    ray.reflect = 0;
+                    ray.color.r = sphere.color.r;
+                    ray.color.g = sphere.color.g;
+                    ray.color.b = sphere.color.b;
                 }
-                ray.color.r = sphere.color.r;
-                ray.color.g = sphere.color.g;
-                ray.color.b = sphere.color.b;
             }
         }
     }
@@ -120,6 +130,7 @@ fn trace(ray: &mut Ray, obj: &[Geometry], limit: u32) {
                 intersect_sphere(ray, o);
             }
         }
+        if ray.hit == true && ray.reflect == 0 { break; }
     }
 
     // hit check
@@ -134,8 +145,9 @@ fn trace(ray: &mut Ray, obj: &[Geometry], limit: u32) {
 
 fn main() {
     // constant
-    let width: u32  = 512;
-    let height: u32 = 512;
+    let reflect_count: u32 = 2;
+    let width: u32         = 512;
+    let height: u32        = 512;
 
     // plane
     let p: Geometry = Geometry {
@@ -172,10 +184,10 @@ fn main() {
     // write
     for (x, y, pixel) in img.enumerate_pixels_mut() {
         // ray
-        let mut ray: Ray = generate_ray(x, y, width, height, Point3D {x: 0.0, y: 0.0, z: 5.0});
+        let mut ray: Ray = generate_ray(x, y, width, height, Point3D {x: 0.0, y: 1.0, z: 5.0});
 
         // trace and intersects
-        trace(&mut ray, &target, 1);
+        trace(&mut ray, &target, reflect_count);
 
         // write color
         let r: u8 = (ray.color.r * 255.0) as u8;
