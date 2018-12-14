@@ -116,6 +116,7 @@ fn trace(ray: Ray) -> Color {
         color: Color {r: 1.0, g: 0.5, b: 0.1}
     };
 
+    // intersects
     let rp: Ray = intersect_plane(&ray, p);
     let rs: Ray = intersect_sphere(&ray, s);
     let mut r: Ray = Ray {
@@ -126,6 +127,7 @@ fn trace(ray: Ray) -> Color {
         color: Color {r: 0.0, g: 0.0, b: 0.0}
     };
 
+    // hit check
     if rp.hit == true && rs.hit == true {
         let lenp: Point3D = rp.position - ray.position;
         let lens: Point3D = rs.position - ray.position;
@@ -135,7 +137,6 @@ fn trace(ray: Ray) -> Color {
     } else if rs.hit == true {
         r = rs;
     }
-
     if r.hit == true {
         let mut light: Point3D = Point3D::new(1.0, 1.0, 0.5);
         light.normalize();
@@ -146,16 +147,18 @@ fn trace(ray: Ray) -> Color {
         r.color.g *= diff;
         r.color.b *= diff;
     }
-
     r.color
 }
 
 fn main() {
-    let width: u32 = 512;
+    // constant
+    let width: u32  = 512;
     let height: u32 = 512;
 
+    // image
     let mut img = image::ImageBuffer::new(width, height);
 
+    // write
     for (x, y, pixel) in img.enumerate_pixels_mut() {
         // ray
         let ray: Ray = generate_ray(x, y, width, height);
@@ -169,10 +172,9 @@ fn main() {
         let b: u8 = (color.b * 255.0) as u8;
         let a: u8 = 255;
 
-        // return color
+        // put color
         *pixel = image::Rgba([r, g, b, a]);
     }
-
     img.save("./out/test.png").unwrap();
 }
 
