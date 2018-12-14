@@ -19,6 +19,12 @@ struct Ray {
     color: Color
 }
 
+struct Plane {
+    position: Point3D,
+    normal: Point3D,
+    color: Color
+}
+
 struct Sphere {
     position: Point3D,
     radius: f64,
@@ -41,7 +47,35 @@ fn generate_ray(x: u32, y: u32, w: u32, h: u32) -> Ray {
     }
 }
 
-fn intersect_sphere(ray: Ray, sphere: Sphere) -> Ray {
+fn intersect_plane(ray: &Ray, plane: Plane) -> Ray {
+    let d: f64 = -plane.position.dot(plane.normal);
+    let v: f64 = ray.direction.dot(plane.normal);
+    let t: f64 = -(ray.position.dot(plane.normal) + d) / v;
+    let mut r: Ray = Ray {
+        hit: false,
+        position: Point3D::new(0.0, 0.0, 0.0),
+        normal: Point3D::new(0.0, 0.0, 0.0),
+        direction: Point3D::new(0.0, 0.0, 0.0),
+        color: Color {r: 0.0, g: 0.0, b: 0.0}
+    };
+    if t > 0.0 {
+        r.hit = true;
+        r.position = ray.position + (ray.direction * t);
+        r.normal = plane.normal;
+        let mut m: f64 = r.position.x % 2.0;
+        let mut n: f64 = r.position.z % 2.0;
+        if m < 0.0 {m += 2.0;}
+        if n < 0.0 {n += 2.0;}
+        let mut c: f64 = 1.0;
+        if (m > 1.0 && n > 1.0) || (m < 1.0 && n < 1.0) {c *= 0.5;}
+        r.color.r = plane.color.r * c;
+        r.color.g = plane.color.g * c;
+        r.color.b = plane.color.b * c;
+    }
+    r
+}
+
+fn intersect_sphere(ray: &Ray, sphere: Sphere) -> Ray {
     let a: Point3D = ray.position - sphere.position;
     let b: f64 = a.dot(ray.direction);
     let c: f64 = a.dot(a) - (sphere.radius * sphere.radius);
@@ -68,6 +102,13 @@ fn intersect_sphere(ray: Ray, sphere: Sphere) -> Ray {
 }
 
 fn trace(ray: Ray) -> Color {
+    // plane
+    let p: Plane = Plane {
+        position: Point3D::new(0.0, -1.0, 0.0),
+        normal: Point3D::new(0.0, 1.0, 0.0),
+        color: Color {r: 0.7, g: 0.7, b: 0.7}
+    };
+
     // sphere
     let s: Sphere = Sphere {
         position: Point3D::new(0.0, 0.0, 0.0),
@@ -75,7 +116,25 @@ fn trace(ray: Ray) -> Color {
         color: Color {r: 1.0, g: 0.5, b: 0.1}
     };
 
-    let mut r: Ray = intersect_sphere(ray, s);
+    let rp: Ray = intersect_plane(&ray, p);
+    let rs: Ray = intersect_sphere(&ray, s);
+    let mut r: Ray = Ray {
+        hit: false,
+        position: Point3D::new(0.0, 0.0, 0.0),
+        normal: Point3D::new(0.0, 0.0, 0.0),
+        direction: Point3D::new(0.0, 0.0, 0.0),
+        color: Color {r: 0.0, g: 0.0, b: 0.0}
+    };
+
+    if rp.hit == true && rs.hit == true {
+        let lenp: Point3D = rp.position - ray.position;
+        let lens: Point3D = rs.position - ray.position;
+        r = if lenp.length() < lens.length() { rp } else { rs };
+    } else if rp.hit == true {
+        r = rp;
+    } else if rs.hit == true {
+        r = rs;
+    }
 
     if r.hit == true {
         let mut light: Point3D = Point3D::new(1.0, 1.0, 0.5);
