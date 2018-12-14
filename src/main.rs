@@ -20,6 +20,7 @@ struct Ray {
     normal: Point3D,
     direction: Point3D,
     reflected: Point3D,
+    hit_color: Color,
     color: Color
 }
 
@@ -48,6 +49,7 @@ fn generate_ray(x: u32, y: u32, w: u32, h: u32, origin: Point3D) -> Ray {
         normal: Point3D::new(0.0, 0.0, 0.0),
         direction: ray,
         reflected: Point3D::new(0.0, 0.0, 0.0),
+        hit_color: Color {r: 0.0, g: 0.0, b: 0.0},
         color: Color {r: 0.0, g: 0.0, b: 0.0}
     }
 }
@@ -72,15 +74,12 @@ fn intersect_plane(ray: &mut Ray, plane: &Geometry) {
             if plane.is_reflect == true {
                 ray.reflected = ray.direction.reflect(ray.normal);
                 ray.reflect += 1;
-                ray.color.r = ray.color.r * 0.5 + (plane.color.r * c) * 0.5;
-                ray.color.g = ray.color.g * 0.5 + (plane.color.g * c) * 0.5;
-                ray.color.b = ray.color.b * 0.5 + (plane.color.b * c) * 0.5;
             } else {
                 ray.reflect = 0;
-                ray.color.r = plane.color.r * c;
-                ray.color.g = plane.color.g * c;
-                ray.color.b = plane.color.b * c;
             }
+            ray.hit_color.r = plane.color.r * c;
+            ray.hit_color.g = plane.color.g * c;
+            ray.hit_color.b = plane.color.b * c;
         }
     }
 }
@@ -104,15 +103,12 @@ fn intersect_sphere(ray: &mut Ray, sphere: &Geometry) {
                 if sphere.is_reflect == true {
                     ray.reflected = ray.direction.reflect(ray.normal);
                     ray.reflect += 1;
-                    ray.color.r = ray.color.r * 0.5 + sphere.color.r * 0.5;
-                    ray.color.g = ray.color.g * 0.5 + sphere.color.g * 0.5;
-                    ray.color.b = ray.color.b * 0.5 + sphere.color.b * 0.5;
                 } else {
                     ray.reflect = 0;
-                    ray.color.r = sphere.color.r;
-                    ray.color.g = sphere.color.g;
-                    ray.color.b = sphere.color.b;
                 }
+                ray.hit_color.r = sphere.color.r;
+                ray.hit_color.g = sphere.color.g;
+                ray.hit_color.b = sphere.color.b;
             }
         }
     }
@@ -130,7 +126,24 @@ fn trace(ray: &mut Ray, obj: &[Geometry], limit: u32) {
                 intersect_sphere(ray, o);
             }
         }
-        if ray.hit == true && ray.reflect == 0 { break; }
+        if ray.hit == true && ray.reflect == 0 {
+            ray.color.r = ray.hit_color.r;
+            ray.color.g = ray.hit_color.g;
+            ray.color.b = ray.hit_color.b;
+            break;
+        } else if ray.hit == true {
+            if ray.reflect == 1 {
+                ray.color.r = ray.hit_color.r;
+                ray.color.g = ray.hit_color.g;
+                ray.color.b = ray.hit_color.b;
+            } else {
+                ray.color.r = ray.color.r * 0.5 + ray.hit_color.r * 0.5;
+                ray.color.g = ray.color.g * 0.5 + ray.hit_color.g * 0.5;
+                ray.color.b = ray.color.b * 0.5 + ray.hit_color.b * 0.5;
+            }
+            ray.direction = ray.reflected;
+            ray.reflected = Point3D::new(0.0, 0.0, 0.0);
+        }
     }
 
     // hit check
