@@ -122,7 +122,7 @@ fn trace(ray: &mut Ray, obj: &[Geometry], limit: u32) {
     let mut light: Point3D = Point3D::new(1.0, 1.0, 0.5);
     light.normalize();
 
-    for _i in 0..limit {
+    for i in 0..limit {
         for o in obj {
             if o.geometry == "plane" {
                 intersect_plane(ray, o, light);
@@ -136,7 +136,7 @@ fn trace(ray: &mut Ray, obj: &[Geometry], limit: u32) {
             ray.color.b = ray.hit_color.b;
             break;
         } else if ray.hit == true {
-            if ray.reflect == 1 {
+            if ray.reflect == 1 || i == 0 {
                 ray.color.r = ray.hit_color.r;
                 ray.color.g = ray.hit_color.g;
                 ray.color.b = ray.hit_color.b;
