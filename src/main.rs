@@ -21,16 +21,10 @@ struct Ray {
     color: Color
 }
 
-struct Plane {
-    geometry: str,
+struct Geometry {
+    geometry: String,
     position: Point3D,
     normal: Point3D,
-    color: Color
-}
-
-struct Sphere {
-    geometry: str,
-    position: Point3D,
     radius: f64,
     color: Color
 }
@@ -53,7 +47,7 @@ fn generate_ray(x: u32, y: u32, w: u32, h: u32, origin: Point3D) -> Ray {
     }
 }
 
-fn intersect_plane(ray: &mut Ray, plane: Plane) {
+fn intersect_plane(ray: &mut Ray, plane: Geometry) {
     let d: f64 = -plane.position.dot(plane.normal);
     let v: f64 = ray.direction.dot(plane.normal);
     let t: f64 = -(ray.origin.dot(plane.normal) + d) / v;
@@ -76,7 +70,7 @@ fn intersect_plane(ray: &mut Ray, plane: Plane) {
     }
 }
 
-fn intersect_sphere(ray: &mut Ray, sphere: Sphere) {
+fn intersect_sphere(ray: &mut Ray, sphere: Geometry) {
     let a: Point3D = ray.origin - sphere.position;
     let b: f64 = a.dot(ray.direction);
     let c: f64 = a.dot(a) - (sphere.radius * sphere.radius);
@@ -101,31 +95,39 @@ fn intersect_sphere(ray: &mut Ray, sphere: Sphere) {
 
 fn trace(ray: &mut Ray) {
     // plane
-    let p: Plane = Plane {
-        geometry: "plane",
+    let p: Geometry = Geometry {
+        geometry: "plane".to_string(),
         position: Point3D::new(0.0, -1.0, 0.0),
         normal: Point3D::new(0.0, 1.0, 0.0),
+        radius: 0.0,
         color: Color {r: 0.5, g: 0.5, b: 0.55}
     };
 
     // sphere
-    let s: Sphere = Sphere {
-        geometry: "sphere",
+    let s: Geometry = Geometry {
+        geometry: "sphere".to_string(),
         position: Point3D::new(0.0, 0.0, 0.0),
+        normal: Point3D::new(0.0, 0.0, 0.0),
         radius: 1.0,
         color: Color {r: 1.0, g: 0.5, b: 0.1}
     };
-    let t: Sphere = Sphere {
-        geometry: "sphere",
-        position: Point3D::new(2.0, 0.0, 0.0),
+    let t: Geometry = Geometry {
+        geometry: "sphere".to_string(),
+        position: Point3D::new(2.0, -0.25, 0.0),
+        normal: Point3D::new(0.0, 0.0, 0.0),
         radius: 0.75,
         color: Color {r: 0.1, g: 0.5, b: 1.0}
     };
 
-    // intersects
-    intersect_plane(ray, p);
-    intersect_sphere(ray, s);
-    intersect_sphere(ray, t);
+    // intersects for geometry in vec
+    let obj = vec![p, s, t];
+    for o in obj {
+        if o.geometry == "plane" {
+            intersect_plane(ray, o);
+        } else if o.geometry == "sphere" {
+            intersect_sphere(ray, o);
+        }
+    }
 
     // hit check
     if ray.hit == true {
