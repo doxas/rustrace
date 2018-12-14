@@ -141,8 +141,7 @@ fn trace(ray: Ray) -> Color {
         let mut light: Point3D = Point3D::new(1.0, 1.0, 0.5);
         light.normalize();
         let mut diff: f64 = r.normal.dot(light);
-        diff = diff.min(1.0);
-        diff = diff.max(0.1);
+        diff = diff.min(1.0).max(0.1);
         r.color.r *= diff;
         r.color.g *= diff;
         r.color.b *= diff;
