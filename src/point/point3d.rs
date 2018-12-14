@@ -36,6 +36,14 @@ impl Point3D {
         let p: Point3D = other - self;
         p.length()
     }
+    pub fn reflect(self, normal: Point3D) -> Point3D {
+        let p: Point3D = normal * (2.0 * self.dot(normal));
+        Point3D {
+            x: self.x - p.x,
+            y: self.y - p.y,
+            z: self.z - p.z
+        }
+    }
     pub fn dot(self, other :Point3D) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
