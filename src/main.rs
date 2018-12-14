@@ -54,7 +54,7 @@ fn generate_ray(x: u32, y: u32, w: u32, h: u32, origin: Point3D) -> Ray {
     }
 }
 
-fn intersect_plane(ray: &mut Ray, plane: &Geometry) {
+fn intersect_plane(ray: &mut Ray, plane: &Geometry, light: Point3D) {
     let d: f64 = -plane.position.dot(plane.normal);
     let v: f64 = ray.direction.dot(plane.normal);
     let t: f64 = -(ray.origin.dot(plane.normal) + d) / v;
@@ -77,14 +77,16 @@ fn intersect_plane(ray: &mut Ray, plane: &Geometry) {
             } else {
                 ray.reflect = 0;
             }
-            ray.hit_color.r = plane.color.r * c;
-            ray.hit_color.g = plane.color.g * c;
-            ray.hit_color.b = plane.color.b * c;
+            let mut diff: f64 = ray.normal.dot(light);
+            diff = diff.min(1.0).max(0.1);
+            ray.hit_color.r = plane.color.r * c * diff;
+            ray.hit_color.g = plane.color.g * c * diff;
+            ray.hit_color.b = plane.color.b * c * diff;
         }
     }
 }
 
-fn intersect_sphere(ray: &mut Ray, sphere: &Geometry) {
+fn intersect_sphere(ray: &mut Ray, sphere: &Geometry, light: Point3D) {
     let a: Point3D = ray.origin - sphere.position;
     let b: f64 = a.dot(ray.direction);
     let c: f64 = a.dot(a) - (sphere.radius * sphere.radius);
@@ -106,9 +108,11 @@ fn intersect_sphere(ray: &mut Ray, sphere: &Geometry) {
                 } else {
                     ray.reflect = 0;
                 }
-                ray.hit_color.r = sphere.color.r;
-                ray.hit_color.g = sphere.color.g;
-                ray.hit_color.b = sphere.color.b;
+                let mut diff: f64 = ray.normal.dot(light);
+                diff = diff.min(1.0).max(0.1);
+                ray.hit_color.r = sphere.color.r * diff;
+                ray.hit_color.g = sphere.color.g * diff;
+                ray.hit_color.b = sphere.color.b * diff;
             }
         }
     }
@@ -121,9 +125,9 @@ fn trace(ray: &mut Ray, obj: &[Geometry], limit: u32) {
     for _i in 0..limit {
         for o in obj {
             if o.geometry == "plane" {
-                intersect_plane(ray, o);
+                intersect_plane(ray, o, light);
             } else if o.geometry == "sphere" {
-                intersect_sphere(ray, o);
+                intersect_sphere(ray, o, light);
             }
         }
         if ray.hit == true && ray.reflect == 0 {
@@ -137,30 +141,22 @@ fn trace(ray: &mut Ray, obj: &[Geometry], limit: u32) {
                 ray.color.g = ray.hit_color.g;
                 ray.color.b = ray.hit_color.b;
             } else {
-                ray.color.r = ray.color.r * 0.5 + ray.hit_color.r * 0.5;
-                ray.color.g = ray.color.g * 0.5 + ray.hit_color.g * 0.5;
-                ray.color.b = ray.color.b * 0.5 + ray.hit_color.b * 0.5;
+                ray.color.r = ray.color.r * 0.95 + ray.hit_color.r * 0.05;
+                ray.color.g = ray.color.g * 0.95 + ray.hit_color.g * 0.05;
+                ray.color.b = ray.color.b * 0.95 + ray.hit_color.b * 0.05;
             }
+            ray.origin = ray.position;
             ray.direction = ray.reflected;
             ray.reflected = Point3D::new(0.0, 0.0, 0.0);
         }
-    }
-
-    // hit check
-    if ray.hit == true {
-        let mut diff: f64 = ray.normal.dot(light);
-        diff = diff.min(1.0).max(0.1);
-        ray.color.r *= diff;
-        ray.color.g *= diff;
-        ray.color.b *= diff;
     }
 }
 
 fn main() {
     // constant
-    let reflect_count: u32 = 2;
-    let width: u32         = 512;
-    let height: u32        = 512;
+    let reflect_count: u32 = 8;
+    let width: u32         = 1024;
+    let height: u32        = 1024;
 
     // plane
     let p: Geometry = Geometry {
@@ -174,22 +170,38 @@ fn main() {
     // sphere
     let s: Geometry = Geometry {
         geometry: "sphere".to_string(),
-        position: Point3D::new(0.0, 0.0, 0.0),
+        position: Point3D::new(0.0, 1.5, -2.0),
         normal: Point3D::new(0.0, 0.0, 0.0),
-        radius: 1.0,
+        radius: 3.0,
         is_reflect: true,
-        color: Color {r: 1.0, g: 0.5, b: 0.1}
+        color: Color {r: 1.0, g: 0.1, b: 0.2}
     };
     let t: Geometry = Geometry {
         geometry: "sphere".to_string(),
-        position: Point3D::new(2.0, -0.25, 0.0),
+        position: Point3D::new(2.75, -0.25, 0.25),
         normal: Point3D::new(0.0, 0.0, 0.0),
         radius: 0.75,
         is_reflect: true,
         color: Color {r: 0.1, g: 0.5, b: 1.0}
     };
+    let u: Geometry = Geometry {
+        geometry: "sphere".to_string(),
+        position: Point3D::new(-2.0, -0.5, 1.0),
+        normal: Point3D::new(0.0, 0.0, 0.0),
+        radius: 0.5,
+        is_reflect: true,
+        color: Color {r: 0.1, g: 1.0, b: 0.5}
+    };
+    let v: Geometry = Geometry {
+        geometry: "sphere".to_string(),
+        position: Point3D::new(0.25, -0.75, 2.0),
+        normal: Point3D::new(0.0, 0.0, 0.0),
+        radius: 0.25,
+        is_reflect: true,
+        color: Color {r: 1.0, g: 0.9, b: 0.1}
+    };
 
-    let target = vec![p, s, t];
+    let target = vec![p, s, t, u, v];
 
     // image
     let mut img = image::ImageBuffer::new(width, height);
